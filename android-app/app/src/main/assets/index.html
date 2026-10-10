@@ -101,9 +101,34 @@ body.typing .maplibregl-canvas{filter:saturate(.92) contrast(1.01) brightness(.8
 <script>
 const BAGHDAD=[44.3661,33.3152];
 const MAP_STYLE='https://tiles.openfreemap.org/styles/dark';
-let map,mode='fast',me=null,dest=null,meMk=null,destMk=null,rs=[],sel=null,watchId=null,followMode=true,navigationActive=false,isTyping=false,pendingRouteDraw=false,routeRevision=0,lastCameraUpdate=0;
+let map,mode='fast',me=null,dest=null,meMk=null,destMk=null,rs=[],sel=null,watchId=null,followMode=true,navigationActive=false,isTyping=false,pendingRouteDraw=false,routeRevision=0,lastCameraUpdate=0,externalLocationQueue=null,mapReady=false;
 
 function msg(s){toast.textContent=s;toast.classList.add('show');clearTimeout(window.__tt);window.__tt=setTimeout(()=>toast.classList.remove('show'),1700)}
+window.acceptExternalLocation=function(type,payload,label){
+  const item={type,payload,label:label||'موقع مستلم'};
+  if(!mapReady||!map){externalLocationQueue=item;return}
+  resetForNewSearch(false);
+  closeSheet('reportSheet');
+  if(type==='coords'){
+    const parts=String(payload).split(',');
+    const lat=parseFloat(parts[0]),lon=parseFloat(parts[1]);
+    if(Number.isFinite(lat)&&Number.isFinite(lon)){
+      q.value=label||'موقع من واتساب';
+      qclear.classList.add('show');
+      setDest([lon,lat],label||'موقع من واتساب');
+      map.easeTo({center:[lon,lat],zoom:15.5,pitch:40,duration:650});
+      msg('تم فتح الموقع في TAMAAZ');
+      return;
+    }
+  }
+  if(type==='search'){
+    q.value=String(payload||'').trim();
+    qclear.classList.toggle('show',!!q.value);
+    if(q.value){search();msg('تم استلام الموقع من واتساب')}
+    return;
+  }
+  msg('تعذر قراءة الموقع المرسل');
+};
 function closeSheet(id){document.getElementById(id).classList.remove('show')}
 function setTypingMode(on){
   isTyping=on;
@@ -328,7 +353,7 @@ try{
 map=new maplibregl.Map({container:'map',style:MAP_STYLE,center:BAGHDAD,zoom:12.4,pitch:44,bearing:-10,antialias:false});
 map.on('style.load',()=>{recolorBaseMap();if(rs.length)ensureRouteLayers()});
 map.on('idle',()=>{if((pendingRouteDraw||rs.length)&&!map.getSource('tamaaz-routes'))ensureRouteLayers()});
-map.on('load',()=>locate(false));
+map.on('load',()=>{mapReady=true;locate(false);if(externalLocationQueue){const x=externalLocationQueue;externalLocationQueue=null;setTimeout(()=>window.acceptExternalLocation(x.type,x.payload,x.label),250)}});
 map.on('click',e=>{if(!navigationActive)setDest([e.lngLat.lng,e.lngLat.lat],'وجهة مختارة')});map.on('dragstart',suspendFollow);map.on('zoomstart',e=>{if(e.originalEvent)suspendFollow()});map.on('rotatestart',e=>{if(e.originalEvent)suspendFollow()});map.on('pitchstart',e=>{if(e.originalEvent)suspendFollow()});
 
 q.addEventListener('focus',()=>{setTypingMode(true);beginNewSearch()});
