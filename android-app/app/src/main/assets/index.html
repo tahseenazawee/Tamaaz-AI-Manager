@@ -7,10 +7,11 @@
 <title>TAMAAZ</title>
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js"></script>
 <style>
 :root{
   --bg:#061326;--panel:#071a35ee;--panel2:#0a2145ee;--line:#1679d8;--text:#f7fbff;
-  --muted:#b7c9e1;--blue:#087cff;--cyan:#3be7ff;--gold:#f7aa24;--red:#ff4a48;--green:#19dc9b;
+  --muted:#b7c9e1;--blue:#00E5B8;--cyan:#6EC8FF;--gold:#f7aa24;--red:#ff4a48;--green:#19dc9b;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -18,7 +19,9 @@ html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahom
 .ui{position:fixed;inset:0;z-index:5;pointer-events:none}.ui>*{pointer-events:auto}
 .card{background:linear-gradient(180deg,rgba(5,27,56,.985),rgba(4,18,39,.985));border:1px solid rgba(21,121,218,.82);box-shadow:0 10px 26px rgba(0,0,0,.32);border-radius:26px}
 .top{position:fixed;top:14px;left:12px;right:12px;display:flex;gap:10px;align-items:center}
-.logo{width:82px;height:66px;display:grid;place-items:center}.logo img{width:48px;height:48px}
+.logo{width:112px;height:66px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 8px}
+.logo img{width:43px;height:43px}
+.logo-word{font-size:11px;font-weight:900;letter-spacing:1.4px;color:#f7fbff;white-space:nowrap}
 .search{height:66px;flex:1;display:flex;align-items:center;padding:0 18px;gap:10px}
 .search input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:18px}
 .search input::placeholder{color:#9db0c8}
@@ -54,7 +57,7 @@ body.typing .maplibregl-canvas{filter:saturate(.92) contrast(1.01) brightness(.8
 <div id="map"></div>
 <div class="ui">
   <div class="top">
-    <div class="card logo"><img src="tamaaz-logo.svg" alt="TAMAAZ"></div>
+    <div class="card logo"><img src="tamaaz-logo.svg" alt="TAMAAZ"><span class="logo-word">TAMAAZ</span></div>
     <div class="card search"><span style="font-size:30px">⌕</span><input id="q" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ابحث عن وجهة أو منطقة..."><button class="search-clear" id="qclear" type="button">×</button></div>
   </div>
   <div class="tools">
@@ -131,7 +134,7 @@ function ensureRouteLayers(){
         id:'tamaaz-route-glow',type:'line',source:'tamaaz-routes',
         layout:{'line-cap':'round','line-join':'round'},
         paint:{
-          'line-color':['case',['boolean',['get','active'],false],'rgba(0,121,255,.42)',['==',['get','alt'],1],'rgba(56,230,255,.28)','rgba(202,218,241,.12)'],
+          'line-color':['case',['boolean',['get','active'],false],'rgba(0,229,184,.38)',['==',['get','alt'],1],'rgba(110,200,255,.24)','rgba(202,218,241,.12)'],
           'line-width':['case',['boolean',['get','active'],false],18,10],
           'line-blur':['case',['boolean',['get','active'],false],5,2],
           'line-opacity':['case',['boolean',['get','active'],false],1,.78]
@@ -143,7 +146,7 @@ function ensureRouteLayers(){
         id:'tamaaz-route-main',type:'line',source:'tamaaz-routes',
         layout:{'line-cap':'round','line-join':'round'},
         paint:{
-          'line-color':['case',['boolean',['get','active'],false],'#087cff',['==',['get','alt'],1],'#3be7ff','#a8bdd7'],
+          'line-color':['case',['boolean',['get','active'],false],'#00E5B8',['==',['get','alt'],1],'#6EC8FF','#a8bdd7'],
           'line-width':['case',['boolean',['get','active'],false],8,5],
           'line-opacity':['case',['boolean',['get','active'],false],1,.82]
         }
@@ -151,6 +154,10 @@ function ensureRouteLayers(){
     }
     const src=map.getSource('tamaaz-routes');
     if(src) src.setData(routeGeoJSON());
+    try{
+      if(map.getLayer('tamaaz-route-glow')) map.moveLayer('tamaaz-route-glow');
+      if(map.getLayer('tamaaz-route-main')) map.moveLayer('tamaaz-route-main');
+    }catch(e){}
     pendingRouteDraw=false;
     return true;
   }catch(e){
@@ -189,13 +196,13 @@ function recolorBaseMap(){
     try{
       if(l.type==='background') map.setPaintProperty(l.id,'background-color','#07172b');
       if(l.type==='fill'){
-        if(id.includes('water')) map.setPaintProperty(l.id,'fill-color','#07549d');
+        if(id.includes('water')) map.setPaintProperty(l.id,'fill-color','#0A426B');
         else if(id.includes('park')||id.includes('wood')||id.includes('grass')||id.includes('landcover')) map.setPaintProperty(l.id,'fill-color','#0b3b34');
         else if(id.includes('building')) map.setPaintProperty(l.id,'fill-color','#132b48');
         else if(id.includes('landuse')) map.setPaintProperty(l.id,'fill-color','#0c2037');
       }
       if(l.type==='line'){
-        if(id.includes('water')) map.setPaintProperty(l.id,'line-color','#1576c9');
+        if(id.includes('water')) map.setPaintProperty(l.id,'line-color','#17618E');
         if(id.includes('motorway')||id.includes('trunk')||id.includes('primary')) {
           map.setPaintProperty(l.id,'line-color','#e8a12d');
           if(map.getPaintProperty(l.id,'line-opacity')!==undefined) map.setPaintProperty(l.id,'line-opacity',.95);
@@ -204,8 +211,16 @@ function recolorBaseMap(){
         }
       }
       if(l.type==='symbol'){
-        if(map.getPaintProperty(l.id,'text-color')!==undefined) map.setPaintProperty(l.id,'text-color','#d9e7f8');
-        if(map.getPaintProperty(l.id,'text-halo-color')!==undefined) map.setPaintProperty(l.id,'text-halo-color','#07172b');
+        try{
+          const tf=map.getLayoutProperty(l.id,'text-field');
+          if(tf!==undefined){
+            map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:ar'],['get','name'],['get','name:en']]);
+          }
+        }catch(e){}
+        if(map.getPaintProperty(l.id,'text-color')!==undefined) map.setPaintProperty(l.id,'text-color','#EAF2FF');
+        if(map.getPaintProperty(l.id,'text-halo-color')!==undefined) map.setPaintProperty(l.id,'text-halo-color','#061326');
+        if(map.getPaintProperty(l.id,'text-halo-width')!==undefined) map.setPaintProperty(l.id,'text-halo-width',1.4);
+        if(map.getPaintProperty(l.id,'text-halo-blur')!==undefined) map.setPaintProperty(l.id,'text-halo-blur',0.3);
       }
     }catch(e){}
   }
@@ -305,6 +320,11 @@ function routeBearing(){
 }
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(routesSheet.classList.contains('show'))centerRouteSheet()});
 
+try{
+  if(maplibregl.setRTLTextPlugin){
+    maplibregl.setRTLTextPlugin('https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',null,true);
+  }
+}catch(e){}
 map=new maplibregl.Map({container:'map',style:MAP_STYLE,center:BAGHDAD,zoom:12.4,pitch:44,bearing:-10,antialias:false});
 map.on('style.load',()=>{recolorBaseMap();if(rs.length)ensureRouteLayers()});
 map.on('idle',()=>{if((pendingRouteDraw||rs.length)&&!map.getSource('tamaaz-routes'))ensureRouteLayers()});
