@@ -41,9 +41,15 @@ html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahom
 .go{position:sticky;bottom:0;z-index:5;width:100%;height:60px;border:0;border-radius:18px;margin-top:12px;background:linear-gradient(135deg,#066ef5,#108dff);color:#fff;font-weight:900;font-size:19px;box-shadow:0 -8px 20px rgba(4,17,38,.3)}
 .reports{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.reports button{height:86px;border:0;border-radius:18px;background:rgba(255,255,255,.05);color:#fff;font-weight:800}
 .toast{display:none;position:fixed;top:88px;left:50%;transform:translateX(-50%);background:#081a35f2;color:#fff;border:1px solid rgba(42,132,225,.65);padding:10px 15px;border-radius:14px}.toast.show{display:block}
+
+body.tamaaz-night-only{background:#07111f;color:#fff}
+body.tamaaz-night-only .card{background:linear-gradient(180deg,rgba(10,22,45,.96),rgba(8,16,34,.96));border-color:rgba(75,145,255,.28)}
+body.typing .card{backdrop-filter:none!important}
+body.typing .maplibregl-canvas{filter:saturate(.92) contrast(1.01) brightness(.88)}
+.search input{caret-color:#5AB8FF}
 </style>
 </head>
-<body>
+<body class="night tamaaz-night-only">
 <div id="map"></div>
 <div class="ui">
   <div class="top">
@@ -91,7 +97,7 @@ html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahom
 <script>
 const BAGHDAD=[44.3661,33.3152];
 const MAP_STYLE='https://tiles.openfreemap.org/styles/dark';
-let map,mode='fast',me=null,dest=null,meMk=null,destMk=null,rs=[],sel=null,ids=[],watchId=null,followMode=true,navigationActive=false,userInteracting=false;
+let map,mode='fast',me=null,dest=null,meMk=null,destMk=null,rs=[],sel=null,ids=[],watchId=null,followMode=true,navigationActive=false,userInteracting=false,isTyping=false,lastSpeedPost=0,lastIntelTick=0;
 
 function msg(s){toast.textContent=s;toast.classList.add('show');clearTimeout(window.__tt);window.__tt=setTimeout(()=>toast.classList.remove('show'),1700)}
 function closeSheet(id){document.getElementById(id).classList.remove('show')}
@@ -152,7 +158,7 @@ function locate(force){
       el.style.cssText='width:28px;height:28px;border-radius:50%;background:#0788ff;border:5px solid #e9f7ff;box-shadow:0 0 0 12px rgba(0,133,255,.22),0 0 22px rgba(0,153,255,.9)';
       meMk=new maplibregl.Marker({element:el}).setLngLat(me).addTo(map);
     }else meMk.setLngLat(me);
-    if((force||!dest)&&followMode)map.easeTo({center:me,zoom:15.3,pitch:48,bearing:0,duration:900});if(navigationActive&&followMode){map.easeTo({center:me,zoom:map.getZoom(),pitch:58,bearing:routeBearing(),duration:380})}
+    if((force||!dest)&&followMode)map.easeTo({center:me,zoom:15.3,pitch:48,bearing:0,duration:900});if(navigationActive&&followMode&&!isTyping){map.easeTo({center:me,zoom:map.getZoom(),pitch:58,bearing:routeBearing(),duration:260})}
     if(dest&&!rs.length)calc();
   },()=>msg('اسمح للتطبيق باستخدام الموقع'),{enableHighAccuracy:true,maximumAge:3500,timeout:10000});
 }
@@ -227,12 +233,12 @@ function routeBearing(){
 }
 if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{if(routesSheet.classList.contains('show'))centerRouteSheet()});
 
-map=new maplibregl.Map({container:'map',style:MAP_STYLE,center:BAGHDAD,zoom:12.4,pitch:44,bearing:-10,antialias:true});
+map=new maplibregl.Map({container:'map',style:MAP_STYLE,center:BAGHDAD,zoom:12.4,pitch:44,bearing:-10,antialias:false});
 map.on('style.load',()=>{recolorBaseMap();draw()});
 map.on('load',()=>locate(false));
 map.on('click',e=>{if(!navigationActive)setDest([e.lngLat.lng,e.lngLat.lat],'وجهة مختارة')});map.on('dragstart',suspendFollow);map.on('zoomstart',e=>{if(e.originalEvent)suspendFollow()});map.on('rotatestart',e=>{if(e.originalEvent)suspendFollow()});map.on('pitchstart',e=>{if(e.originalEvent)suspendFollow()});
 
-q.addEventListener('focus',()=>setTypingMode(true));q.addEventListener('blur',()=>setTypingMode(false));q.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();hideKeyboard();search()}});
+q.addEventListener('focus',()=>setTypingMode(true));q.addEventListener('blur',()=>setTypingMode(false));q.addEventListener('focus',()=>setTypingMode(true));q.addEventListener('blur',()=>setTypingMode(false));q.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();hideKeyboard();search()}});
 zin.onclick=()=>map.zoomIn();zout.onclick=()=>map.zoomOut();loc.onclick=()=>{if(me){navigationActive=navigationActive||false;setFollowMode(true)}else locate(true)};
 document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('.modes button').forEach(x=>x.classList.toggle('on',x===b));choose(true)});
 trip.onclick=()=>rs.length&&openSheet('routesSheet');rep.onclick=()=>openSheet('reportSheet');
