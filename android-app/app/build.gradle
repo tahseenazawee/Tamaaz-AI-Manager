@@ -10,8 +10,8 @@ android {
         applicationId "com.tamaaz.app"
         minSdk 26
         targetSdk 35
-        versionCode 9
-        versionName "0.9-night-fast-typing"
+        versionCode 10
+        versionName "1.0-stability-search-route"
     }
 
     buildTypes {
