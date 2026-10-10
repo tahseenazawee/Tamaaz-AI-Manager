@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
@@ -28,6 +29,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webview);
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -40,6 +42,7 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
+        s.setOffscreenPreRaster(true);
         s.setUserAgentString(s.getUserAgentString() + " TAMAAZAndroid/1.0");
 
         webView.setWebViewClient(new WebViewClient());
@@ -74,6 +77,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.loadUrl("file:///android_asset/index.html");
     }
 
