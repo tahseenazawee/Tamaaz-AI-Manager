@@ -10,8 +10,8 @@ android {
         applicationId "com.tamaaz.app"
         minSdk 26
         targetSdk 35
-        versionCode 5
-        versionName "0.5-keyboard-route-sheet-fix"
+        versionCode 6
+        versionName "0.6-keyboard-start-visible"
     }
 
     buildTypes {
