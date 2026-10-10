@@ -53,7 +53,7 @@ function fmtKm(m){return(m/1000).toFixed(1)+' كم'}function fmtMin(s){return Ma
 function clearLines(){layers.forEach(function(id){if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});layers=[]}
 function draw(){
  clearLines();
- routeObjs.forEach(function(r,i){var id='r'+i;layers.push(id);map.addSource(id,{type:'geojson',data:{type:'Feature',geometry:r.geometry}});map.addLayer({id:id,type:'line',source:id,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':selected&&selected.id===r.id?'#1e74ff':['#54ce7e','#f6b322','#9aa8bb'][i%3],'line-width':selected&&selected.id===r.id?9:5,'line-opacity':selected&&selected.id===r.id?.98:.5}})});
+ routeObjs.forEach(function(r,i){var id='r'+i;layers.push(id);map.addSource(id,{type:'geojson',data:{type:'Feature',geometry:r.geometry}});map.addLayer({id:id,type:'line',source:id,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':selected&&selected.id===r.id?'#1e74ff':['#54ce7e','#f6b322','#9aa8bb'][i%3],'line-width':selected&&selected.id===r.id?9:5,'line-opacity':selected&&selected.id===r.id ? .98 : .5}})});
 }
 function choose(){
  if(!routeObjs.length)return;
