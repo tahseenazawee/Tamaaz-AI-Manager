@@ -1,0 +1,30 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.tamaaz.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.tamaaz.app"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "0.1-trial"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.15.0'
+}
