@@ -1,90 +1,25 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>TAMAAZ</title>
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<style>
-*{box-sizing:border-box}html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif}body{background:#0e1730;color:#fff}
-#map{position:fixed;inset:0}.night .maplibregl-canvas{filter:brightness(.80) saturate(.9)}.day .maplibregl-canvas{filter:brightness(1.08) saturate(.85)}
-.ui{position:fixed;inset:0;z-index:5;pointer-events:none}.ui>*{pointer-events:auto}
-.panel{background:rgba(13,25,51,.90);border:1px solid #ffffff18;backdrop-filter:blur(14px);box-shadow:0 12px 30px #0004;border-radius:22px}
-.day .panel{background:rgba(255,255,255,.94);border-color:#10224018;color:#102240}
-.top{position:fixed;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:center}
-.logo{width:54px;height:54px;padding:7px}.logo img{width:100%;height:100%}
-.search{height:54px;flex:1;display:flex;align-items:center;padding:0 14px}.search input{width:100%;border:0;outline:0;background:transparent;color:inherit;font-size:16px}
-.theme{position:fixed;top:76px;left:12px;display:flex;padding:5px;gap:5px}.theme button,.modes button{border:0;background:transparent;color:inherit;border-radius:14px;padding:9px 12px;font-weight:700}.theme .on,.modes .on{background:#1e74ff;color:#fff}
-.modes{position:fixed;left:12px;right:12px;bottom:142px;display:flex;padding:6px;gap:4px;overflow:auto}.modes button{flex:1;min-width:74px;font-size:12px}
-.trip{position:fixed;left:12px;right:12px;bottom:12px;padding:15px 16px;display:flex;align-items:center;gap:13px}.car{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;background:#ffffff0d;font-size:25px}.eta{font-size:38px;font-weight:900;color:#f6b322}.triptext{flex:1}.meta{opacity:.8;font-size:13px;margin-top:4px}
-.tools{position:fixed;right:12px;top:42%;display:flex;flex-direction:column;padding:5px;gap:5px}.tools button,.report{width:46px;height:46px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:22px}
-.report{position:fixed;left:12px;bottom:205px;border-radius:17px;background:linear-gradient(135deg,#f6b322,#ff8c34);color:#10213f;font-weight:900}
-.sheet{position:fixed;inset:0;z-index:30;display:none;background:#07101a66;backdrop-filter:blur(2px)}.sheet.show{display:block}.card{position:absolute;left:10px;right:10px;bottom:10px;max-height:75vh;overflow:auto;padding:18px}.head{display:flex;justify-content:space-between;align-items:center}.head h2{margin:0}.close{border:0;background:#ffffff10;color:inherit;width:40px;height:40px;border-radius:14px;font-size:20px}
-.route{padding:14px;margin-top:10px;border-radius:18px;background:#ffffff0a;border:1px solid #ffffff12}.day .route{background:#10224008;border-color:#10224012}.route.sel{outline:2px solid #1e74ff}.score{float:left;background:#1e74ff;border-radius:14px;padding:9px;font-weight:900}.reportgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.reportgrid button{height:82px;border:0;border-radius:18px;background:#ffffff0a;color:inherit;font-size:12px}.day .reportgrid button{background:#10224008}.big{font-size:25px;display:block;margin-bottom:6px}
-.start{width:100%;height:50px;border:0;border-radius:16px;background:#1e74ff;color:#fff;font-weight:900;margin-top:12px}
-.toast{position:fixed;top:84px;left:50%;transform:translateX(-50%);background:#0e1730;color:#fff;padding:9px 13px;border-radius:13px;display:none}.toast.show{display:block}
-</style>
-</head>
-<body class="night">
-<div id="map"></div>
-<div class="ui">
-<div class="top">
- <div class="panel logo"><img src="tamaaz-logo.svg"></div>
- <div class="panel search"><input id="q" placeholder="ابحث عن وجهة..."></div>
-</div>
-<div class="panel theme"><button id="night" class="on">ليلي</button><button id="day">نهاري</button></div>
-<div class="panel modes"><button data-m="fast" class="on">الأسرع</button><button data-m="calm">الأهدأ</button><button data-m="eco">الأوفر</button><button data-m="quality">أفضل شارع</button></div>
-<div class="panel tools"><button id="loc">➤</button><button id="zin">＋</button><button id="zout">－</button></div>
-<button class="report" id="rep">＋</button>
-<div class="panel trip" id="trip"><div class="car">🚗</div><div class="triptext"><div><span class="eta" id="eta">—</span> دقيقة</div><div class="meta"><span id="road">اختر وجهة</span> · <span id="km">— كم</span></div></div><div id="score">—</div></div>
-<div class="sheet" id="routesSheet"><div class="panel card"><div class="head"><h2>المسارات</h2><button class="close" onclick="closeSheet('routesSheet')">×</button></div><div id="routes"></div><button class="start" id="start">ابدأ الملاحة</button></div></div>
-<div class="sheet" id="reportSheet"><div class="panel card"><div class="head"><h2>أبلغ عن الطريق</h2><button class="close" onclick="closeSheet('reportSheet')">×</button></div><div class="reportgrid">
-<button data-r="traffic"><span class="big">🚗</span>ازدحام</button><button data-r="accident"><span class="big">💥</span>حادث</button><button data-r="closed"><span class="big">⛔</span>مغلق</button><button data-r="pothole"><span class="big">🕳</span>حفرة</button><button data-r="works"><span class="big">🚧</span>أعمال</button><button data-r="hazard"><span class="big">⚠️</span>خطر</button>
-</div></div></div>
-<div class="toast" id="toast"></div>
-</div>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>TAMAAZ</title><link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"><script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script><style>
+*{box-sizing:border-box}html,body,#map{margin:0;width:100%;height:100%;overflow:hidden;font-family:Tahoma,Arial,sans-serif}body{background:#081427;color:#fff}#map{position:fixed;inset:0}.maplibregl-ctrl-attrib{display:none!important}.ui{position:fixed;inset:0;z-index:5;pointer-events:none}.ui>*{pointer-events:auto}.card{background:linear-gradient(180deg,rgba(10,24,48,.94),rgba(8,18,35,.94));border:1px solid rgba(61,105,169,.85);box-shadow:0 10px 35px #0006;backdrop-filter:blur(12px);border-radius:26px}.day .card{background:linear-gradient(180deg,rgba(245,249,255,.96),rgba(234,241,250,.94));color:#102240;border-color:#91a8cb}.top{position:fixed;top:14px;left:12px;right:12px;display:flex;gap:10px}.logo{width:84px;height:66px;display:grid;place-items:center}.logo img{width:44px}.search{height:66px;flex:1;display:flex;align-items:center;padding:0 18px;gap:10px}.search input{width:100%;border:0;outline:0;background:transparent;color:inherit;font-size:18px}.theme{position:fixed;top:94px;left:12px;padding:6px;display:flex;gap:6px}.theme button,.modes button{border:0;background:transparent;color:inherit;font-weight:800}.theme button{width:96px;height:48px;border-radius:18px;font-size:16px}.on{background:linear-gradient(135deg,#1f72ff,#3190ff)!important;color:#fff!important}.modes{position:fixed;left:12px;right:12px;bottom:112px;padding:7px;display:flex;gap:5px}.modes button{flex:1;height:72px;border-radius:20px;font-size:16px}.trip{position:fixed;left:12px;right:12px;bottom:12px;padding:14px 18px;display:flex;align-items:center;gap:12px}.eta{font-size:72px;font-weight:900;color:#f6b322;line-height:.9}.tripmain{flex:1;text-align:center}.meta{font-size:15px;color:#c2d1e7;margin-top:8px}.day .meta{color:#59708f}.score{font-size:28px;font-weight:900;width:64px;text-align:center}.car{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;background:#ffffff0a;font-size:36px}.tools{position:fixed;right:12px;top:45%;display:flex;flex-direction:column;gap:8px}.tool{width:68px;height:68px;border-radius:24px;border:0;font-size:32px;display:grid;place-items:center}.report{position:fixed;left:12px;bottom:205px;width:66px;height:66px;border-radius:22px;border:0;background:linear-gradient(135deg,#f6b322,#ff9c31);font-size:38px;font-weight:900}.sheet{display:none;position:fixed;inset:0;z-index:20;background:#06101f66}.sheet.show{display:block}.sheetcard{position:absolute;left:12px;right:12px;bottom:12px;max-height:66vh;overflow:auto;padding:18px}.head{display:flex;justify-content:space-between;align-items:center}.head h3{margin:0;font-size:25px}.x{width:44px;height:44px;border:0;border-radius:14px;font-size:22px}.route{margin-top:10px;padding:14px;border-radius:20px;background:#ffffff08;border:1px solid #ffffff13;display:flex;justify-content:space-between;align-items:center}.day .route{background:#10224008;border-color:#10224012}.route.sel{outline:2px solid #2d84ff}.badge{width:58px;height:58px;border-radius:18px;background:#2d84ff;display:grid;place-items:center;font-weight:900}.go{width:100%;height:56px;border:0;border-radius:18px;margin-top:12px;background:#2d84ff;color:#fff;font-weight:900;font-size:18px}.reports{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.reports button{height:86px;border:0;border-radius:18px;background:#ffffff08;color:inherit;font-weight:800}.day .reports button{background:#10224008}.toast{display:none;position:fixed;top:86px;left:50%;transform:translateX(-50%);background:#0d1b35;color:#fff;padding:10px 15px;border-radius:14px}.toast.show{display:block}
+</style></head><body class="night"><div id="map"></div><div class="ui">
+<div class="top"><div class="card logo"><img src="tamaaz-logo.svg"></div><div class="card search"><span style="font-size:30px">⌕</span><input id="q" placeholder="ابحث عن وجهة أو منطقة..."></div></div>
+<div class="card theme"><button id="night" class="on">ليلي</button><button id="day">نهاري</button></div>
+<div class="tools"><button class="card tool" id="loc">➤</button><button class="card tool" id="zin">+</button><button class="card tool" id="zout">−</button></div>
+<button class="report" id="rep">+</button>
+<div class="card modes"><button data-m="quality">أفضل<br>شارع</button><button data-m="eco">الأوفر</button><button data-m="calm">الأهدأ</button><button data-m="fast" class="on">الأسرع</button></div>
+<div class="card trip" id="trip"><div class="score"><span id="score">87</span> ★</div><div class="tripmain"><div><span class="eta" id="eta">—</span> دقيقة</div><div class="meta"><span id="road">من موقعك الحالي</span> · <span id="km">— كم</span></div></div><div class="car">🚗</div></div>
+<div class="sheet" id="routesSheet"><div class="card sheetcard"><div class="head"><button class="card x" onclick="closeSheet('routesSheet')">×</button><h3>المسارات</h3></div><div id="routes"></div><button class="go" id="start">ابدأ الملاحة</button></div></div>
+<div class="sheet" id="reportSheet"><div class="card sheetcard"><div class="head"><button class="card x" onclick="closeSheet('reportSheet')">×</button><h3>البلاغات</h3></div><div class="reports"><button data-r="traffic">🚗<br>ازدحام</button><button data-r="accident">💥<br>حادث</button><button data-r="closed">⛔<br>مغلق</button><button data-r="pothole">🕳<br>حفرة</button><button data-r="works">🚧<br>أعمال</button><button data-r="hazard">⚠️<br>خطر</button></div></div></div><div class="toast" id="toast"></div></div>
 <script>
-var map,me=null,dest=null,meMk=null,destMk=null,routeObjs=[],selected=null,mode='fast',layers=[];
-var style={version:8,sources:{osm:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256}},layers:[{id:'osm',type:'raster',source:'osm'}]};
-function msg(t){toast.textContent=t;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show')},1600)}
-function closeSheet(id){document.getElementById(id).classList.remove('show')}
-function fmtKm(m){return(m/1000).toFixed(1)+' كم'}function fmtMin(s){return Math.max(1,Math.round(s/60))}
-function clearLines(){layers.forEach(function(id){if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});layers=[]}
-function draw(){
- clearLines();
- routeObjs.forEach(function(r,i){var id='r'+i;layers.push(id);map.addSource(id,{type:'geojson',data:{type:'Feature',geometry:r.geometry}});map.addLayer({id:id,type:'line',source:id,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':selected&&selected.id===r.id?'#1e74ff':['#54ce7e','#f6b322','#9aa8bb'][i%3],'line-width':selected&&selected.id===r.id?9:5,'line-opacity':selected&&selected.id===r.id ? .98 : .5}})});
-}
-function choose(){
- if(!routeObjs.length)return;
- selected=routeObjs.slice().sort(function(a,b){return a.scores[mode]-b.scores[mode]})[0];
- eta.textContent=fmtMin(selected.duration);km.textContent=fmtKm(selected.distance);score.textContent='★ '+selected.road_score;road.textContent='المسار المختار';render();draw();
-}
-function render(){
- routes.innerHTML='';
- routeObjs.slice().sort(function(a,b){return a.scores[mode]-b.scores[mode]}).forEach(function(r,i){var d=document.createElement('div');d.className='route'+(selected&&selected.id===r.id?' sel':'');d.innerHTML='<span class="score">'+r.road_score+'</span><b>'+(i===0?'مقترح TAMAAZ':'مسار بديل')+'</b><br><small>'+fmtMin(r.duration)+' دقيقة · '+fmtKm(r.distance)+'</small>';d.onclick=function(){selected=r;eta.textContent=fmtMin(r.duration);km.textContent=fmtKm(r.distance);score.textContent='★ '+r.road_score;render();draw()};routes.appendChild(d)});
-}
-async function calc(){
- if(!me||!dest){msg('فعّل الموقع وحدد وجهة');return}
- try{
-  var u='https://router.project-osrm.org/route/v1/driving/'+me[0]+','+me[1]+';'+dest[0]+','+dest[1]+'?overview=full&geometries=geojson&alternatives=true&steps=true';
-  var j=await(await fetch(u)).json();routeObjs=(j.routes||[]).slice(0,3).map(function(r,i){var q=Math.max(55,Math.min(98,Math.round(95-r.duration/700)));return{id:i,duration:r.duration,distance:r.distance,geometry:r.geometry,steps:(r.legs[0]||{}).steps||[],road_score:q,scores:{fast:r.duration,calm:r.duration+i*90,eco:r.distance+r.duration*.12,quality:r.duration+(98-q)*40}}});choose();var b=new maplibregl.LngLatBounds();routeObjs.forEach(function(r){r.geometry.coordinates.forEach(function(c){b.extend(c)})});map.fitBounds(b,{padding:80,duration:600});routesSheet.classList.add('show');
- }catch(e){msg('تعذر حساب الطريق')}
-}
-async function search(){
- var s=q.value.trim();if(!s)return;msg('جاري البحث...');
- try{var j=await(await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=iq&q='+encodeURIComponent(s))).json();if(!j.length){msg('لم أجد المكان');return}dest=[+j[0].lon,+j[0].lat];if(destMk)destMk.remove();destMk=new maplibregl.Marker({color:'#ff704a'}).setLngLat(dest).addTo(map);road.textContent=j[0].display_name.split(',').slice(0,2).join('، ');calc()}catch(e){msg('تعذر البحث')}
-}
-map=new maplibregl.Map({container:'map',style:style,center:[44.3661,33.3152],zoom:12.4});
-map.on('click',function(e){dest=[e.lngLat.lng,e.lngLat.lat];if(destMk)destMk.remove();destMk=new maplibregl.Marker({color:'#ff704a'}).setLngLat(dest).addTo(map);calc()});
-q.addEventListener('keydown',function(e){if(e.key==='Enter')search()});
-document.querySelectorAll('.modes button').forEach(function(b){b.onclick=function(){mode=b.dataset.m;document.querySelectorAll('.modes button').forEach(function(x){x.classList.toggle('on',x===b)});choose()}});
-night.onclick=function(){document.body.className='night';night.classList.add('on');day.classList.remove('on')};day.onclick=function(){document.body.className='day';day.classList.add('on');night.classList.remove('on')};
-zin.onclick=function(){map.zoomIn()};zout.onclick=function(){map.zoomOut()};loc.onclick=function(){if(me)map.flyTo({center:me,zoom:15});else msg('الموقع غير متاح')};
-rep.onclick=function(){reportSheet.classList.add('show')};document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){var rows=JSON.parse(localStorage.getItem('tamaaz_reports')||'[]');if(!me){msg('فعّل الموقع أولًا');return}rows.unshift({type:b.dataset.r,lat:me[1],lon:me[0],t:Date.now()});localStorage.setItem('tamaaz_reports',JSON.stringify(rows.slice(0,100)));closeSheet('reportSheet');msg('تم حفظ البلاغ')}});
-start.onclick=function(){closeSheet('routesSheet');if(selected&&me){map.easeTo({center:me,zoom:16.8,pitch:55,duration:700});msg('بدأت الملاحة التجريبية')}};
-trip.onclick=function(){if(routeObjs.length)routesSheet.classList.add('show')};
-if(navigator.geolocation)navigator.geolocation.watchPosition(function(p){me=[p.coords.longitude,p.coords.latitude];if(!meMk)meMk=new maplibregl.Marker({color:'#1e74ff'}).setLngLat(me).addTo(map);else meMk.setLngLat(me)},function(){msg('اسمح للتطبيق باستخدام الموقع')},{enableHighAccuracy:true,maximumAge:2000,timeout:10000});
-</script>
-</body>
-</html>
+const BAGHDAD=[44.3661,33.3152],DAY='https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',NIGHT='https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';let map,theme='night',mode='fast',me=null,dest=null,meMk=null,destMk=null,rs=[],sel=null,ids=[];
+function sty(tile){return{version:8,sources:{b:{type:'raster',tiles:[tile],tileSize:256}},layers:[{id:'b',type:'raster',source:'b'}]}}function msg(s){toast.textContent=s;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1600)}function closeSheet(id){document.getElementById(id).classList.remove('show')}function openSheet(id){document.getElementById(id).classList.add('show')}function fm(s){return Math.max(1,Math.round(s/60))}function fk(m){return(m/1000).toFixed(1)+' كم'}
+function setTheme(t){theme=t;document.body.className=t;night.classList.toggle('on',t==='night');day.classList.toggle('on',t==='day');let c=map.getCenter(),z=map.getZoom(),p=map.getPitch(),b=map.getBearing();map.setStyle(sty(t==='night'?NIGHT:DAY));map.once('styledata',()=>{draw();map.jumpTo({center:c,zoom:z,pitch:p,bearing:b})})}
+function locate(force){if(!navigator.geolocation){msg('الموقع غير مدعوم');return}navigator.geolocation.watchPosition(p=>{me=[p.coords.longitude,p.coords.latitude];if(!meMk)meMk=new maplibregl.Marker({color:'#2d84ff'}).setLngLat(me).addTo(map);else meMk.setLngLat(me);if(force||!dest)map.easeTo({center:me,zoom:15.2,pitch:50,duration:900});if(dest&&!rs.length)calc()},()=>msg('اسمح للتطبيق باستخدام الموقع'),{enableHighAccuracy:true,maximumAge:4000,timeout:10000})}
+async function search(){let s=q.value.trim();if(!s)return;try{msg('جاري البحث...');let j=await(await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=iq&q='+encodeURIComponent(s))).json();if(!j.length){msg('لم أجد المكان');return}setDest([+j[0].lon,+j[0].lat],j[0].display_name.split(',').slice(0,2).join('، '))}catch(e){msg('تعذر البحث')}}
+function setDest(c,label){dest=c;if(destMk)destMk.remove();destMk=new maplibregl.Marker({color:'#ff5a49'}).setLngLat(dest).addTo(map);road.textContent=label||'الوجهة';rs=[];sel=null;if(!me){locate(true);msg('نحدد موقعك الحالي أولًا')}else calc()}
+async function calc(){try{let u='https://router.project-osrm.org/route/v1/driving/'+me[0]+','+me[1]+';'+dest[0]+','+dest[1]+'?alternatives=true&steps=true&overview=full&geometries=geojson',j=await(await fetch(u)).json();rs=(j.routes||[]).slice(0,3).map((r,i)=>({id:i,d:r.duration,m:r.distance,g:r.geometry,s:Math.max(55,Math.min(98,Math.round(96-r.duration/650-i*3))),w:{fast:r.duration,calm:r.duration+i*130,eco:r.distance+r.duration*.13,quality:r.duration+i*90}}));choose(false);openSheet('routesSheet')}catch(e){msg('تعذر حساب الطريق')}}
+function choose(keep){if(!rs.length)return;sel=rs.slice().sort((a,b)=>a.w[mode]-b.w[mode])[0];eta.textContent=fm(sel.d);km.textContent=fk(sel.m);score.textContent=sel.s;render();draw();fit();if(keep)openSheet('routesSheet')}
+function clear(){ids.forEach(id=>{if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});ids=[]}function draw(){if(!map||!map.isStyleLoaded())return;clear();rs.forEach((r,i)=>{let id='r'+i,a=sel&&sel.id===r.id;map.addSource(id,{type:'geojson',data:{type:'Feature',geometry:r.g}});map.addLayer({id:id+'c',type:'line',source:id,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':a?'rgba(255,255,255,.35)':'rgba(255,255,255,.12)','line-width':a?14:9}});map.addLayer({id:id+'m',type:'line',source:id,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':a?'#2f86ff':i===1?'#6fe8ff':'#8e9bb4','line-width':a?8:5,'line-opacity':a?1:.8}});ids.push(id+'c',id+'m')})}
+function fit(){if(!sel)return;let b=new maplibregl.LngLatBounds();sel.g.coordinates.forEach(c=>b.extend(c));if(me)b.extend(me);if(dest)b.extend(dest);map.fitBounds(b,{padding:{top:120,bottom:250,left:55,right:90},duration:900,pitch:48,maxZoom:16.5})}
+function render(){routes.innerHTML='';rs.slice().sort((a,b)=>a.w[mode]-b.w[mode]).forEach((r,i)=>{let d=document.createElement('div');d.className='route'+(sel&&sel.id===r.id?' sel':'');d.innerHTML='<div class="badge">'+r.s+'</div><div><b>'+(i===0?'المسار المقترح':'مسار بديل')+'</b><br><small>'+fm(r.d)+' دقيقة · '+fk(r.m)+'</small></div>';d.onclick=()=>{sel=r;eta.textContent=fm(r.d);km.textContent=fk(r.m);score.textContent=r.s;render();draw();fit()};routes.appendChild(d)})}
+map=new maplibregl.Map({container:'map',style:sty(NIGHT),center:BAGHDAD,zoom:12.4,pitch:45,bearing:-12});map.on('load',()=>locate(false));map.on('click',e=>setDest([e.lngLat.lng,e.lngLat.lat],'وجهة مختارة'));q.addEventListener('keydown',e=>{if(e.key==='Enter')search()});night.onclick=()=>setTheme('night');day.onclick=()=>setTheme('day');zin.onclick=()=>map.zoomIn();zout.onclick=()=>map.zoomOut();loc.onclick=()=>me?map.easeTo({center:me,zoom:15.8,pitch:50,duration:800}):locate(true);document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('.modes button').forEach(x=>x.classList.toggle('on',x===b));choose(true)});trip.onclick=()=>rs.length&&openSheet('routesSheet');rep.onclick=()=>openSheet('reportSheet');start.onclick=()=>{closeSheet('routesSheet');fit();msg('تم اعتماد المسار')};document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{if(!me){msg('فعّل موقعك أولًا');return}let a=JSON.parse(localStorage.getItem('tamaaz_reports')||'[]');a.unshift({type:b.dataset.r,lat:me[1],lon:me[0],t:Date.now()});localStorage.setItem('tamaaz_reports',JSON.stringify(a.slice(0,100)));closeSheet('reportSheet');msg('تم حفظ البلاغ')});
+</script></body></html>
