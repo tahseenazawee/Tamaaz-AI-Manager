@@ -10,8 +10,8 @@ android {
         applicationId "com.tamaaz.app"
         minSdk 26
         targetSdk 35
-        versionCode 10
-        versionName "1.0-stability-search-route"
+        versionCode 11
+        versionName "1.1-arabic-labels-cinematic-route"
     }
 
     buildTypes {
